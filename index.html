@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <title>SkyPulse Relay — 60s Esports Booth Reflex Arena</title>
+  <meta name="description" content="Zero-dependency 60-second esports reflex and rhythm booth mini-game with Daily Seed, 2P Hot-Seat, and instant CSV leaderboard export.">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-dot" aria-hidden="true"></span>
+        <div>
+          <h1>SkyPulse Relay</h1>
+          <p class="subtitle">60-Second Esports Reflex &amp; Rhythm Booth Arena</p>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <button type="button" id="soundToggle" class="btn btn-ghost" aria-pressed="true">Sound: ON</button>
+        <button type="button" id="rulesBtn" class="btn btn-ghost" command="show-modal" commandfor="rulesDialog">How to Play</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="arena-panel" aria-label="Game Arena">
+        <div class="hud" aria-live="polite">
+          <div class="stat">
+            <span class="stat-label">SCORE</span>
+            <strong id="hudScore" class="stat-value cyan">0</strong>
+          </div>
+          <div class="stat">
+            <span class="stat-label">COMBO</span>
+            <strong id="hudCombo" class="stat-value magenta">0 (1×)</strong>
+          </div>
+          <div class="stat">
+            <span class="stat-label">ACCURACY</span>
+            <strong id="hudAcc" class="stat-value">100.0%</strong>
+          </div>
+          <div class="stat">
+            <span class="stat-label">AVG REACT</span>
+            <strong id="hudReact" class="stat-value">0 ms</strong>
+          </div>
+          <div class="stat">
+            <span class="stat-label">TIME LEFT</span>
+            <strong id="hudTime" class="stat-value">60.0s</strong>
+          </div>
+        </div>
+
+        <div class="timer-track" aria-hidden="true">
+          <div id="timerBar" class="timer-fill"></div>
+        </div>
+
+        <div class="canvas-wrap">
+          <canvas id="arenaCanvas" width="840" height="480" aria-label="SkyPulse Relay interactive reflex arena">
+            SkyPulse Relay interactive 60-second esports reflex arena. Click cyan flick targets, avoid red decoy orbs, and press Space to sync expanding pulse gates.
+          </canvas>
+
+          <div id="overlay" class="overlay">
+            <div class="overlay-card">
+              <p class="eyebrow" id="overlayBadge">BOOTH READY · ZERO INSTALL</p>
+              <h2 id="overlayTitle">Lock In. Beat The Booth.</h2>
+              <p id="overlayDesc" class="overlay-desc">
+                Click cyan flick nodes fast for PERFECT combos, dodge red decoy orbs, and hit <strong>Space</strong> (or Pulse Sync) when the wave enters the cyan ring for <strong>+2s Overdrive</strong>.
+              </p>
+
+              <div class="controls-row">
+                <label class="field">
+                  <span>Mode</span>
+                  <select id="modeSelect">
+                    <option value="arcade">Arcade 60s (Random)</option>
+                    <option value="daily">Daily Booth Seed</option>
+                    <option value="hotseat">2P Hot-Seat Duel</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Tag (3 chars)</span>
+                  <input id="tagInput" type="text" maxlength="3" value="C9X" autocomplete="off" spellcheck="false">
+                </label>
+              </div>
+
+              <div id="hotseatBanner" class="hotseat-banner" hidden></div>
+
+              <div class="overlay-btns">
+                <button type="button" id="startBtn" class="btn btn-primary">Start 60s Round</button>
+              </div>
+              <p class="seed-meta" id="seedMeta">Daily Seed Ready</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="arena-footer">
+          <button type="button" id="pulseBtn" class="btn btn-accent">
+            Pulse Sync <kbd>Space</kbd>
+          </button>
+          <button type="button" id="restartBtn" class="btn btn-ghost">
+            Restart <kbd>R</kbd>
+          </button>
+          <span id="overdrivePill" class="overdrive-pill" hidden>OVERDRIVE 1.25× ACTIVE</span>
+        </div>
+      </section>
+
+      <aside class="side-panel" aria-label="Booth Leaderboard">
+        <div class="side-header">
+          <h2>Booth Top 10</h2>
+          <button type="button" id="exportCsvBtn" class="btn btn-ghost btn-sm">Export CSV</button>
+        </div>
+        <ol id="leaderboardList" class="leaderboard"></ol>
+
+        <div class="legend">
+          <h3>Targets &amp; Scoring</h3>
+          <ul>
+            <li><span class="dot cyan-dot"></span> <strong>Cyan Flick</strong>: +250 PERFECT / +150 GREAT</li>
+            <li><span class="dot mag-dot"></span> <strong>Magenta Surge</strong>: 1.6× Bonus Node</li>
+            <li><span class="dot red-dot"></span> <strong>Red Decoy</strong>: -150 &amp; breaks combo</li>
+            <li><span class="dot ring-dot"></span> <strong>Pulse Gate</strong>: Press Space in cyan ring (+400× &amp; +2s)</li>
+          </ul>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <dialog id="rulesDialog" closedby="any" aria-labelledby="rulesTitle">
+    <h1 id="rulesTitle">How to Play SkyPulse Relay</h1>
+    <ul class="rules-list">
+      <li><strong>Flick Nodes (Cyan):</strong> Click or tap quickly while the outer ring is wide for <em>PERFECT (+250)</em>. Chain hits to reach up to <strong>8× Combo</strong>.</li>
+      <li><strong>Surge Nodes (Magenta):</strong> Smaller, faster high-value nodes worth <strong>1.6× points</strong>.</li>
+      <li><strong>Decoy Hazards (Red X):</strong> Do not click — hitting a decoy deducts <strong>-150</strong> and resets your combo.</li>
+      <li><strong>Pulse Sync Gate (Space / Button):</strong> Every few seconds an energy ring expands from center. Press <kbd>Space</kbd> or tap <em>Pulse Sync</em> when it hits the bright cyan band for <strong>+400 × combo</strong>, <strong>+2.0s bonus time</strong>, and 5s of <strong>1.25× Overdrive</strong>.</li>
+      <li><strong>Booth Modes:</strong> Use <em>Daily Booth Seed</em> so every fan on the same day gets the exact same spawn sequence, or <em>2P Hot-Seat Duel</em> for back-to-back booth battles.</li>
+    </ul>
+    <form method="dialog" class="dialog-actions">
+      <button type="submit" value="close" class="btn btn-primary" autofocus>Back to Arena</button>
+    </form>
+  </dialog>
+
+  <script type="module" src="./app.mjs"></script>
+</body>
+</html>
